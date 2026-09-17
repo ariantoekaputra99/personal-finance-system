@@ -1,208 +1,161 @@
-# Personal Finance Management System
+# Personal Finance System
 
-Sistem manajemen keuangan personal dengan arsitektur microservices yang mengintegrasikan berbagai teknologi modern.
+### Event-Driven Microservices for Personal Finance
 
-## Teknologi yang Digunakan
+A self-directed backend project exploring how a personal finance platform can be designed with **microservices, asynchronous events, caching, search, and containerized infrastructure**.
 
-- **Spring IoC**: Dependency injection dan inversion of control
-- **Java Stream**: Processing data transaksi dan laporan
-- **Advanced Native SQL**: Query kompleks untuk analisis keuangan
-- **Docker & Microservices**: Containerization dan arsitektur microservices
-- **Apache Kafka**: Real-time transaction processing dan event streaming
-- **Redis**: Caching dan session management
-- **Elasticsearch**: Search engine dan analytics
-- **PostgreSQL**: Database utama untuk data transaksional
+> Built as an engineering playground for architecture, integration, and backend development.
 
-## Arsitektur Microservices
+---
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   API Gateway   │    │   User Service  │    │Transaction Svc  │
-│   (Port 8080)   │    │   (Port 8081)   │    │   (Port 8082)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
+## 🏗️ Architecture
+
+```text
+                         ┌─────────────────┐
+                         │   API Gateway   │
+                         └────────┬────────┘
+                                  │
+          ┌───────────────────────┼───────────────────────┐
+          │                       │                       │
+  ┌───────▼───────┐      ┌───────▼────────┐      ┌──────▼────────┐
+  │  User Service │      │ Transaction Svc │      │ Analytics Svc │
+  └───────────────┘      └───────┬────────┘      └──────┬────────┘
+                                  │                       │
+                                  ▼                       │
+                           ┌────────────┐                 │
+                           │    Kafka   │◄────────────────┘
+                           └─────┬──────┘
                                  │
-         ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-         │Analytics Service│    │Notification Svc │    │   Kafka Cluster │
-         │   (Port 8083)   │    │   (Port 8084)   │    │   (Port 9092)   │
-         └─────────────────┘    └─────────────────┘    └─────────────────┘
-                 │                       │                       │
-         ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-         │  Elasticsearch  │    │     Redis       │    │   PostgreSQL    │
-         │   (Port 9200)   │    │   (Port 6379)   │    │   (Port 5432)   │
-         └─────────────────┘    └─────────────────┘    └─────────────────┘
+                         ┌───────▼────────┐
+                         │ Notification   │
+                         │    Service     │
+                         └────────────────┘
+
+        Redis ────────── caching
+        PostgreSQL ───── transactional data
+        Elasticsearch ── search & analytics
 ```
 
-## Fitur Utama
+The architecture intentionally separates responsibilities while using events for asynchronous communication between services.
 
-1. **User Management**: Registrasi, login, profil pengguna
-2. **Transaction Management**: CRUD transaksi dengan kategorisasi
-3. **Real-time Analytics**: Dashboard dengan metrics real-time
-4. **Smart Notifications**: Notifikasi berbasis event dan threshold
-5. **Advanced Search**: Pencarian transaksi dengan Elasticsearch
-6. **Caching Strategy**: Multi-level caching untuk performa optimal
+## 🧰 Tech Stack
 
-## Quick Start
+- **Java 17**
+- **Spring Boot / Spring Cloud**
+- **Apache Kafka** — event streaming
+- **Redis** — caching
+- **Elasticsearch** — search and analytics
+- **PostgreSQL** — transactional storage
+- **Docker / Docker Compose** — local infrastructure
+- **Maven** — build and dependency management
+- **JWT / SpringDoc OpenAPI** — authentication and API documentation
+- **Testcontainers** — integration testing
 
-### Option 1: Local Development (Recommended)
+## ✨ Engineering Highlights
+
+- Multi-module Maven project with separated services
+- Event-driven transaction processing
+- Redis caching strategy
+- Elasticsearch-powered search and analytics
+- REST APIs documented with OpenAPI
+- Containerized infrastructure for local development
+- Integration-testing support with Testcontainers
+
+## 📦 Services
+
+| Service | Responsibility |
+|---|---|
+| API Gateway | Entry point and request routing |
+| User Service | User and authentication workflows |
+| Transaction Service | Transaction management |
+| Analytics Service | Reporting and financial insights |
+| Notification Service | Event-driven notifications |
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Java 17+
+- Maven 3.6+ or Maven Wrapper
+- Docker & Docker Compose
+
+### Run infrastructure
+
 ```bash
-# 1. Start infrastructure services only
 docker-compose -f docker-compose-infra.yml up -d
-
-# 2. Build all services
-./mvnw clean package
-
-# 3. Run services locally
-./start-services.ps1  # Windows
-# atau
-./start-services.sh   # Linux/Mac
 ```
 
-### Option 2: Full Docker Environment
+### Build
+
 ```bash
-# Start all services with Docker
+./mvnw clean package
+```
+
+### Run services
+
+```bash
+./start-services.sh
+```
+
+On Windows:
+
+```powershell
+./start-services.ps1
+```
+
+Alternatively, run the complete environment with Docker:
+
+```bash
 docker-compose -f docker-compose-prod.yml up -d --build
 ```
 
-## API Endpoints
+## 🔎 API Documentation
 
-### User Service (8081)
-- `POST /api/users/register` - Registrasi user
-- `POST /api/users/login` - Login user
-- `GET /api/users/profile` - Get user profile
+Each service exposes OpenAPI / Swagger UI during local development.
 
-### Transaction Service (8082)
-- `POST /api/transactions` - Create transaction
-- `GET /api/transactions` - Get transactions with filters
-- `GET /api/transactions/analytics` - Get transaction analytics
+Typical endpoints:
 
-### Analytics Service (8083)
-- `GET /api/analytics/dashboard` - Dashboard data
-- `GET /api/analytics/reports` - Financial reports
-- `GET /api/analytics/trends` - Spending trends
-
-## Database Configuration
-
-Sistem menggunakan PostgreSQL dengan konfigurasi:
-- **Host**: localhost:5432
-- **Database**: finance_db
-- **Username**: postgres
-- **Password**: 1234567890
-
-## Configuration Files
-
-Semua service menggunakan `application.properties` format:
-- `user-service/src/main/resources/application.properties`
-- `transaction-service/src/main/resources/application.properties`
-- `analytics-service/src/main/resources/application.properties`
-- `notification-service/src/main/resources/application.properties`
-- `api-gateway/src/main/resources/application.properties`
-
-## Development
-
-Setiap microservice menggunakan:
-- **Spring Boot 3.1.5** dengan Maven build system
-- **Spring Cloud 2022.0.4** untuk microservices patterns
-- **Java 17** dengan Stream API
-- **Lombok 1.18.30** untuk code generation
-- **MapStruct 1.5.5** untuk object mapping
-- **JWT (JJWT 0.11.5)** untuk authentication
-- **SpringDoc OpenAPI 2.2.0** untuk API documentation
-- **Testcontainers 1.19.1** untuk integration testing
-
-## Build & Run
-
-### Prerequisites
-- Java 17+
-- Maven 3.6+ (atau gunakan Maven Wrapper)
-- Docker & Docker Compose
-
-### Quick Start
-```bash
-# 1. Clone repository
-git clone <repository-url>
-cd personal-finance-system
-
-# 2. Start infrastructure services only
-docker-compose -f docker-compose-infra.yml up -d
-
-# 3. Build all services
-./mvnw clean package
-
-# 4. Run services locally
-./start-services.sh  # Linux/Mac
-# atau
-.\start-services.ps1 # Windows
+```text
+API Gateway       http://localhost:8080
+User Service      http://localhost:8081
+Transaction       http://localhost:8082
+Analytics         http://localhost:8083
+Notification      http://localhost:8084
 ```
 
-### Manual Service Startup
-```bash
-# Run individual services
-./mvnw spring-boot:run -pl user-service
-./mvnw spring-boot:run -pl transaction-service
-./mvnw spring-boot:run -pl analytics-service
-./mvnw spring-boot:run -pl notification-service
-./mvnw spring-boot:run -pl api-gateway
-```
+## 🔐 Configuration & Security
 
-## API Documentation
+Credentials and environment-specific values should be supplied through environment variables or local configuration and **must not be committed to the repository**.
 
-### 🚀 Swagger/OpenAPI Documentation
-Setiap microservice dilengkapi dengan **interactive Swagger UI**:
+For local development, configure database and infrastructure settings according to your environment.
 
-- **API Gateway**: http://localhost:8080/swagger-ui.html
-- **User Service**: http://localhost:8081/swagger-ui.html  
-- **Transaction Service**: http://localhost:8082/swagger-ui.html
-- **Analytics Service**: http://localhost:8083/swagger-ui.html
-- **Notification Service**: http://localhost:8084/swagger-ui.html
+## 📁 Project Structure
 
-### 📋 Features
-- **Interactive Testing**: Test APIs langsung dari browser
-- **JWT Authentication**: Bearer token support
-- **Request/Response Examples**: Sample data lengkap
-- **Error Handling**: Dokumentasi error responses
-- **Rate Limiting**: Informasi API limits
-
-
-
-## Project Structure
-
-```
+```text
 personal-finance-system/
-├── pom.xml                      # Parent POM (Maven multi-module)
-├── mvnw / mvnw.cmd              # Maven wrapper
-├── README.md                    # This file
-├── api-gateway/                 # API Gateway Service
-│   ├── pom.xml
-│   └── src/main/
-├── user-service/                # User Management Service
-│   ├── pom.xml
-│   └── src/main/
-├── transaction-service/         # Transaction Management Service
-│   ├── pom.xml
-│   └── src/main/
-├── analytics-service/           # Analytics & Reporting Service
-│   ├── pom.xml
-│   └── src/main/
-└── notification-service/        # Notification Service
-    ├── pom.xml
-    └── src/main/
+├── api-gateway/
+├── user-service/
+├── transaction-service/
+├── analytics-service/
+├── notification-service/
+├── pom.xml
+├── docker-compose-infra.yml
+└── docker-compose-prod.yml
 ```
 
-## Maven Configuration
+## 🎯 Why This Project Exists
 
-### Parent POM Features
-- **Multi-module structure** dengan 5 microservices
-- **Dependency management** untuk konsistensi versi
-- **Plugin management** untuk build consistency
-- **Common dependencies** (Lombok, Testing)
+This project is primarily about practicing real backend engineering concerns rather than building a production financial product. It provides a sandbox for exploring:
 
-### Key Dependencies Managed
-- Spring Boot 3.1.5
-- Spring Cloud 2022.0.4
-- Lombok 1.18.30
-- MapStruct 1.5.5
-- JJWT 0.11.5
-- SpringDoc OpenAPI 2.2.0
-- Testcontainers 1.19.1
+- service boundaries
+- event-driven architecture
+- data consistency
+- caching
+- search
+- API design
+- integration testing
+- containerized development
+
+---
+
+**Arianto Eka Putra · Software Engineer**
